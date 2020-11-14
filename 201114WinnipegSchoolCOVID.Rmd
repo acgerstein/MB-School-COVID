@@ -1,0 +1,66 @@
+---
+title: "MB-School-COVID"
+author: "Aleeza Gerstein"
+date: '2020-11-14'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## The data
+
+The data analyzed here was pulled from the google doc <https://docs.google.com/spreadsheets/d/1FYgmi2S_Tjhn1qfem7sqdY9NzvHaC5YLuZeFiSVW838/edit#gid=0>, compiled by twitter account @ManitobaSchoolCovidExposures.
+
+On November 14, 2020 the data from the Winnipeg tab was opened in excel and examined/cleaned to determine the maximum number of possible COVID-19 school introductions.
+
+1) From the original column "Exposure data", the earlier possible date of exposure in the school was determined. This is considered infection day 1. Note that the true first infective day could have been earlier. This is recorded as "Earliest_Exposure" in the cleaned dataset.
+2) From that date, the 14 day exposure period was calculated. This is recorded as "Earliest_14-days" in the cleaned dataset.
+3) A potential outbreak was determined if there was a second case within the same school within the 14 day window. Any indication of cohort or grade was ignored for this purpose. If there was only one case, this is considered outbreak-negative (i.e., "Possible_Outbreak" is scored as 0 in the cleaned dataset). If there was at least one additional case within the original time period it was scored as "Possible_
+Outbreak" = 1. The maximum number of linked cases ("Total_Cases") was determined as the continuous time period in the same school over which cases were observed. The Column "Last_14-days" reflects 14 days after the last linked case exposure. "Days_of_Exposure" is the number of days between the Earliest_Exposure and the last exposure + 14 days ("Last_14-days".
+
+```{r data}
+library(tidyverse)
+library(here)
+
+d <- read_csv(here("data", "201114SchoolCases-Cleaned.csv"))
+```
+
+Number of exposures and outbreaks:
+```{r}
+# Number of total exposures
+nrow(d)
+# Table of outbreaks
+table(d$Possible_Outbreak)
+# Percentage of cases with outbreaks
+table(d$Possible_Outbreak)/nrow(d)
+```
+There have been 190 separate introductions of COVID-19 introduction into Winnipeg schools since the beginning of the school year. 113 of exposures (59.5%) did not lead to a second (or more) case.
+
+```{r pressure, echo=FALSE}
+out <- subset(d, Possible_Outbreak==1)
+nrow(out)
+
+# Size of outbreaks
+table(out$Total_Cases)
+# Proportion of outbreak sizes
+table(out$Total_Cases)/nrow(out)
+```
+
+Of schools with an "outbreak" (two or more cases), 55% of those resulted in only two cases. So of the 190 school cases so far, 155 (82%) have resulted in one or two COVID-19 cases. 
+
+On the flip side, there have been 6 schools with outbreaks of 10 or more cases.
+
+## Caveats
+As with anything, the analysis is only as good as the data. This is analysis the should properly be done by the Provincial Government with full knowledge of what data is or isn't availavble. We have been given no indication of parents or other contacts outside of the school system that may have acquired a secondary infection from the cases listed here. 
+From this analysis, however, although there have absolutely been a handful, the majority of cases to date in Winnipeg schools do not seem to have led to widespread outbreaks of the kind we are seeing in long term care centers or other institutions. 
+
+## Figures
+
+```{r}
+hist(d$Total_Cases, main="", yaxt="n", breaks=20, xlim=c(1, 30), xlab = "Number of people infected", ylab = "Number of cases", xaxt="n")
+axis(2, las=2, pos=0)
+axis(1, pos=0)
+
+```
